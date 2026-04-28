@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora</title>
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1a1a1a;
+      font-family: -apple-system, 'Helvetica Neue', sans-serif;
+    }
+
+    .phone {
+      width: 320px;
+      background: #000;
+      border-radius: 54px;
+      padding: 16px;
+      box-shadow:
+        0 0 0 1px #333,
+        0 40px 80px rgba(0,0,0,0.9),
+        inset 0 0 0 1px #222;
+      position: relative;
+    }
+
+    .phone::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 28px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 10;
+      box-shadow: 0 0 0 1.5px #222;
+    }
+
+    .screen {
+      background: #000;
+      border-radius: 42px;
+      overflow: hidden;
+      padding-top: 60px;
+    }
+
+    .display {
+      padding: 0 24px 16px;
+      text-align: right;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .expression {
+      font-size: 20px;
+      color: #888;
+      font-weight: 300;
+      min-height: 28px;
+      letter-spacing: -0.3px;
+      word-break: break-all;
+      transition: all 0.15s;
+    }
+
+    .result {
+      font-size: 68px;
+      color: #fff;
+      font-weight: 300;
+      letter-spacing: -3px;
+      line-height: 1;
+      margin-top: 4px;
+      transition: font-size 0.1s;
+      word-break: break-all;
+    }
+
+    .result.small { font-size: 42px; letter-spacing: -1px; }
+    .result.xsmall { font-size: 32px; letter-spacing: 0; }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 10px 16px 24px;
+    }
+
+    .btn {
+      height: 72px;
+      border: none;
+      border-radius: 50%;
+      font-size: 28px;
+      font-weight: 400;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: filter 0.08s;
+      position: relative;
+      outline: none;
+    }
+
+    .btn:active { filter: brightness(1.4); transform: scale(0.95); }
+
+    .btn-func {
+      background: #a5a5a5;
+      color: #000;
+      font-size: 22px;
+      font-weight: 500;
+    }
+
+    .btn-op {
+      background: #ff9f0a;
+      color: #fff;
+    }
+
+    .btn-op.active {
+      background: #fff;
+      color: #ff9f0a;
+    }
+
+    .btn-num {
+      background: #333;
+      color: #fff;
+    }
+
+    .btn-zero {
+      grid-column: span 2;
+      border-radius: 36px;
+      justify-content: flex-start;
+      padding-left: 26px;
+    }
+
+    /* Glow sutil no operador ativo */
+    .btn-op.active {
+      box-shadow: 0 0 12px rgba(255,159,10,0.4);
+    }
+
+    /* Efeito de brilho no display */
+    .display-glow {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="screen">
+      <div class="display-glow"></div>
+      <div class="display">
+        <div class="expression" id="expression"></div>
+        <div class="result" id="result">0</div>
+      </div>
+      <div class="buttons">
+        <!-- Row 1 -->
+        <button class="btn btn-func" onclick="handleFunc('clear')">AC</button>
+        <button class="btn btn-func" onclick="handleFunc('sign')">+/-</button>
+        <button class="btn btn-func" onclick="handleFunc('percent')">%</button>
+        <button class="btn btn-op" id="op-÷" onclick="handleOp('÷')">÷</button>
+        <!-- Row 2 -->
+        <button class="btn btn-num" onclick="handleNum('7')">7</button>
+        <button class="btn btn-num" onclick="handleNum('8')">8</button>
+        <button class="btn btn-num" onclick="handleNum('9')">9</button>
+        <button class="btn btn-op" id="op-×" onclick="handleOp('×')">×</button>
+        <!-- Row 3 -->
+        <button class="btn btn-num" onclick="handleNum('4')">4</button>
+        <button class="btn btn-num" onclick="handleNum('5')">5</button>
+        <button class="btn btn-num" onclick="handleNum('6')">6</button>
+        <button class="btn btn-op" id="op-−" onclick="handleOp('−')">−</button>
+        <!-- Row 4 -->
+        <button class="btn btn-num" onclick="handleNum('1')">1</button>
+        <button class="btn btn-num" onclick="handleNum('2')">2</button>
+        <button class="btn btn-num" onclick="handleNum('3')">3</button>
+        <button class="btn btn-op" id="op-+" onclick="handleOp('+')">+</button>
+        <!-- Row 5 -->
+        <button class="btn btn-num btn-zero" onclick="handleNum('0')">0</button>
+        <button class="btn btn-num" onclick="handleNum('.')">.</button>
+        <button class="btn btn-op" onclick="calculate()">=</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let current = '0';
+    let previous = '';
+    let operator = null;
+    let shouldReset = false;
+    let justCalculated = false;
+
+    const resultEl = document.getElementById('result');
+    const expressionEl = document.getElementById('expression');
+
+    function updateDisplay() {
+      let display = current;
+      if (display.length > 9) display = parseFloat(current).toExponential(3);
+      resultEl.textContent = display;
+
+      if (display.length > 9) {
+        resultEl.className = 'result xsmall';
+      } else if (display.length > 6) {
+        resultEl.className = 'result small';
+      } else {
+        resultEl.className = 'result';
+      }
+    }
+
+    function clearActiveOps() {
+      document.querySelectorAll('.btn-op').forEach(b => b.classList.remove('active'));
+    }
+
+    function handleNum(num) {
+      if (shouldReset) {
+        current = num === '.' ? '0.' : num;
+        shouldReset = false;
+      } else {
+        if (num === '.' && current.includes('.')) return;
+        if (current === '0' && num !== '.') {
+          current = num;
+        } else {
+          if (current.replace('.', '').replace('-', '').length >= 9) return;
+          current += num;
+        }
+      }
+      if (justCalculated && num !== '.') {
+        expressionEl.textContent = '';
+        justCalculated = false;
+      }
+      updateDisplay();
+    }
+
+    function handleOp(op) {
+      if (operator && !shouldReset) {
+        calculate(true);
+      }
+      previous = current;
+      operator = op;
+      shouldReset = true;
+      justCalculated = false;
+      clearActiveOps();
+      const opMap = {'÷':'÷','×':'×','−':'−','+':'+'};
+      const btn = document.getElementById('op-' + op);
+      if (btn) btn.classList.add('active');
+      expressionEl.textContent = previous + ' ' + op;
+    }
+
+    function calculate(intermediate = false) {
+      if (!operator || !previous) return;
+      const a = parseFloat(previous);
+      const b = parseFloat(current);
+      let result;
+
+      switch (operator) {
+        case '+': result = a + b; break;
+        case '−': result = a - b; break;
+        case '×': result = a * b; break;
+        case '÷': result = b !== 0 ? a / b : 'Erro'; break;
+      }
+
+      if (!intermediate) {
+        expressionEl.textContent = previous + ' ' + operator + ' ' + current + ' =';
+        justCalculated = true;
+      }
+
+      current = result === 'Erro' ? 'Erro' : String(parseFloat(result.toFixed(10)));
+      if (!intermediate) {
+        operator = null;
+        previous = '';
+        clearActiveOps();
+      } else {
+        previous = current;
+      }
+      shouldReset = true;
+      updateDisplay();
+    }
+
+    function handleFunc(fn) {
+      switch (fn) {
+        case 'clear':
+          current = '0';
+          previous = '';
+          operator = null;
+          shouldReset = false;
+          justCalculated = false;
+          clearActiveOps();
+          expressionEl.textContent = '';
+          break;
+        case 'sign':
+          if (current !== '0') current = current.startsWith('-') ? current.slice(1) : '-' + current;
+          break;
+        case 'percent':
+          current = String(parseFloat(current) / 100);
+          break;
+      }
+      updateDisplay();
+    }
+
+    // Suporte ao teclado
+    document.addEventListener('keydown', e => {
+      if (e.key >= '0' && e.key <= '9') handleNum(e.key);
+      else if (e.key === '.') handleNum('.');
+      else if (e.key === '+') handleOp('+');
+      else if (e.key === '-') handleOp('−');
+      else if (e.key === '*') handleOp('×');
+      else if (e.key === '/') { e.preventDefault(); handleOp('÷'); }
+      else if (e.key === 'Enter' || e.key === '=') calculate();
+      else if (e.key === 'Escape') handleFunc('clear');
+      else if (e.key === 'Backspace') {
+        if (current.length > 1) current = current.slice(0, -1);
+        else current = '0';
+        updateDisplay();
+      }
+    });
+  </script>
+</body>
+</html>
